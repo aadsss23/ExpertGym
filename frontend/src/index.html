@@ -1,0 +1,967 @@
+<!--
+  index.html — ExpertGym (Single Page App)
+  📍 Tahap Alur Penelitian: Perancangan Sistem → Desain Antarmuka, lalu
+     diimplementasikan pada Implementasi Sistem → Pengembangan Sistem →
+     Implementasi Website. Lihat PETA_ALUR_PENELITIAN.md di root project.
+-->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExpertGym: Gym Training Recommendation System</title>
+<link rel="icon" type="image/svg+xml" href="../public/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../public/css/style.css">
+<link rel="stylesheet" href="../public/css/responsive.css">
+<link rel="stylesheet" href="../public/css/mobile.css">
+</head>
+<body>
+<a href="#appScreen" class="skip-link">Langsung ke konten</a>
+
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="spinner"></div>
+  <p class="loading-text" id="loadingText">Memproses...</p>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- =================== AUTH =================== -->
+<div id="authScreen">
+  <nav class="auth-nav">
+    <div class="brand">Expert<span>Gym</span></div>
+  </nav>
+  <div class="auth-body">
+    <div class="auth-bg"></div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')" id="tabLogin">Masuk</div>
+        <div class="auth-tab" onclick="switchAuthTab('register')" id="tabRegister">Daftar</div>
+      </div>
+      <div id="loginPanel" class="auth-form">
+        <h2>Masuk</h2>
+        <p>Akses program latihan personal Anda melalui sistem rekomendasi ExpertGym.</p>
+        <div class="form-group"><label>Username</label><input class="form-input" id="loginUsername" name="eg-login-user" placeholder="Masukkan username..." autocomplete="off"></div>
+        <div class="form-group"><label>Password</label>
+          <div class="password-field">
+            <input class="form-input" type="password" id="loginPassword" name="eg-login-pass" placeholder="Masukkan password..." autocomplete="new-password" onkeydown="if(event.key==='Enter')doLogin()">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Tampilkan password" title="Tampilkan password">
+              <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="icon-eye-off hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-3.36 3.36A9.12 9.12 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 4.31-5.94"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="auth-error" id="loginError"></div>
+        <button class="btn-auth" onclick="doLogin()">Masuk</button>
+        <div class="auth-divider"><span>atau</span></div>
+        <button class="btn-guest" onclick="doGuest()">Masuk sebagai Tamu</button>
+        <!-- <div class="auth-info"><p>Demo Admin: <strong>admin</strong> / <strong>admin123</strong><br>Demo User: <strong>user1</strong> / <strong>user123</strong></p></div> -->
+      </div>
+      <div id="registerPanel" class="auth-form hidden">
+        <h2>Buat Akun</h2>
+        <p>Daftar untuk menyimpan riwayat program dan latihan favorit Anda.</p>
+        <div class="form-group"><label>Nama Lengkap</label><input class="form-input" id="regName" name="eg-reg-name" placeholder="Nama lengkap Anda..." autocomplete="off"></div>
+        <div class="form-group"><label>Username</label><input class="form-input" id="regUsername" name="eg-reg-user" placeholder="Pilih username unik..." autocomplete="off"></div>
+        <div class="form-group"><label>Password</label>
+          <div class="password-field">
+            <input class="form-input" type="password" id="regPassword" name="eg-reg-pass" placeholder="Min. 6 karakter..." autocomplete="new-password">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('regPassword', this)" aria-label="Tampilkan password" title="Tampilkan password">
+              <svg class="icon-eye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="icon-eye-off hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-3.36 3.36A9.12 9.12 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 4.31-5.94"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="auth-error" id="regError"></div>
+        <button class="btn-auth" onclick="doRegister()">Daftar Sekarang</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== APP =================== -->
+<div id="appScreen">
+  <nav>
+    <div class="nav-left">
+      <div class="nav-logo">Expert<span>Gym</span></div>
+      <div class="nav-user-pill">
+        <div class="nav-user-avatar" id="navUserAvatar">?</div>
+        <span id="navUserName">Tamu</span>
+      </div>
+    </div>
+    <div class="nav-right" id="navRight">
+      <button class="nav-btn nav-btn-back" id="navBtnBack" onclick="closeHamburger();showView('home')">Beranda</button>
+      <button class="nav-btn nav-btn-assessment" id="navBtnAssessment" onclick="closeHamburger();startNewAssessment()">Mulai Asesmen</button>
+      <button class="nav-btn nav-btn-history" onclick="closeHamburger();openPanel('history')">Riwayat</button>
+      <button class="nav-btn nav-btn-wlog" id="navBtnWlog" onclick="closeHamburger();showView('wlog')">Workout Log</button>
+      <button class="nav-btn nav-btn-favorit" onclick="closeHamburger();openPanel('favorit')">♡ <span class="nav-btn-label">Favorit</span> <span class="badge-count" id="favCount">0</span></button>
+      <button class="nav-btn nav-btn-logout" onclick="doLogout()">Keluar</button>
+      <button class="nav-btn nav-btn-mobile-login" onclick="doLogout()">Masuk</button>
+    </div>
+    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleHamburger()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile nav overlay -->
+  <div class="nav-overlay" id="navOverlay" onclick="closeHamburger()"></div>
+
+  <!-- Bottom navigation (mobile only, ≤640px — lihat css/mobile.css) -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Navigasi utama">
+    <button type="button" class="mbn-item" id="mbnHome" onclick="showView('home')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      <span>Beranda</span>
+    </button>
+    <button type="button" class="mbn-item" id="mbnAssessment" onclick="startNewAssessment()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5h6a1 1 0 011 1V6h1.5A1.5 1.5 0 0119 7.5v12A1.5 1.5 0 0117.5 21h-11A1.5 1.5 0 015 19.5v-12A1.5 1.5 0 016.5 6H8V4.5a1 1 0 011-1z"/><path d="M8.5 12.5l2 2 4-4.5"/></svg>
+      <span>Asesmen</span>
+    </button>
+    <button type="button" class="mbn-item mbn-user-only" id="mbnWorkout" onclick="showView('wlog')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V13"/><path d="M8 21V7"/><path d="M13 21V11"/><path d="M18 21V4"/><path d="M2.5 21h19"/></svg>
+      <span>Workout</span>
+    </button>
+    <button type="button" class="mbn-item mbn-user-only" id="mbnHistory" onclick="openPanel('history');if(typeof mobileSetBottomActive==='function')mobileSetBottomActive('mbnHistory')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 108.5-8.5"/><path d="M3.5 5v4.5H8"/><path d="M12 8v4l3 2"/></svg>
+      <span>Riwayat</span>
+    </button>
+  </nav>
+
+  <div id="homeView">
+  <!-- ── HERO ── -->
+  <div class="hero" id="heroSection">
+    <h1>Temukan Program Latihan<br><em>yang Sesuai untuk Anda</em></h1>
+    <p>Isi asesmen singkat untuk mendapatkan program latihan mingguan yang disusun berdasarkan kemampuan, tujuan, dan alat yang tersedia.</p>
+    <div class="hero-cta-group">
+      <button class="hero-cta-primary" id="heroCtaAssessment" onclick="startNewAssessment()">
+        Mulai Asesmen
+      </button>
+      <button class="hero-cta-secondary" onclick="document.getElementById('howItWorks').scrollIntoView({behavior:'smooth'})">
+        Cara Kerja Sistem
+      </button>
+    </div>
+  </div>
+
+  <!-- ── HOW IT WORKS ── -->
+  <hr class="home-divider">
+  <div class="home-section reveal" id="howItWorks">
+    <div class="home-section-label">Cara Kerja Sistem</div>
+    <div class="home-section-title">Tiga Langkah Sederhana,<br>Program yang Personal</div>
+    <div class="home-section-desc">ExpertGym memproses hasil asesmen menggunakan metode inferensi Forward Chaining dan aturan yang telah ditentukan untuk menghasilkan rekomendasi latihan yang sesuai dengan profil pengguna.</div>
+    <div class="how-steps-grid">
+      <div class="how-step-card reveal">
+        <div class="how-step-num">01</div>
+        <div class="how-step-title">Asesmen Personal</div>
+        <div class="how-step-desc">Sistem mengumpulkan informasi mengenai pengalaman latihan, tujuan, kondisi fisik, dan preferensi Anda melalui 12 pertanyaan terstruktur.</div>
+      </div>
+      <div class="how-step-card reveal">
+        <div class="how-step-num">02</div>
+        <div class="how-step-title">Analisis dengan Forward Chaining</div>
+        <div class="how-step-desc">Jawaban diproses dengan metode Forward Chaining untuk menentukan tingkat kemampuan, kondisi keamanan, dan rekomendasi yang sesuai.</div>
+      </div>
+      <div class="how-step-card reveal">
+        <div class="how-step-num">03</div>
+        <div class="how-step-title">Program Mingguan Terstruktur</div>
+        <div class="how-step-desc">Hasil pemrosesan disusun menjadi program latihan mingguan dengan jadwal, urutan latihan, set, repetisi, waktu istirahat, dan pemanasan yang sesuai.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FITUR UTAMA ── -->
+  <hr class="home-divider">
+  <div class="home-section reveal">
+    <div class="home-section-label">Fitur Aplikasi</div>
+    <div class="home-section-title">Isi Asesmen,<br>Program Langsung Jadi</div>
+    <div class="home-section-desc">Enam fitur berikut saling terhubung dalam satu alur: dari asesmen, tersusun jadi program, dijadwalkan, dijalankan, hingga tercatat sebagai riwayat.</div>
+    <div class="feature-system reveal">
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon yellow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5h6a1 1 0 011 1V6h1.5A1.5 1.5 0 0119 7.5v12A1.5 1.5 0 0117.5 21h-11A1.5 1.5 0 015 19.5v-12A1.5 1.5 0 016.5 6H8V4.5a1 1 0 011-1z"/><path d="M8.5 12.5l2 2 4-4.5"/><path d="M8.5 16.5h5"/></svg>
+          </div>
+          <div class="feature-card-title">Asesmen Personal</div>
+          <div class="feature-card-desc">12 pertanyaan terstruktur mencakup pengalaman, kondisi fisik, tujuan, dan batasan medis untuk mendeteksi risiko cedera dan memberi peringatan aman berlatih.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V13"/><path d="M8 21V7"/><path d="M13 21V11"/><path d="M18 21V4"/><path d="M2.5 21h19"/></svg>
+          </div>
+          <div class="feature-card-title">Program Mingguan Split</div>
+          <div class="feature-card-desc">Jadwal Full Body, Upper/Lower, atau Push/Pull/Legs otomatis sesuai level dan frekuensi latihan.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4.5" width="7" height="6.5" rx="1.5"/><rect x="13" y="4.5" width="7" height="6.5" rx="1.5" stroke-dasharray="2.5 2.5"/><rect x="4" y="13" width="7" height="6.5" rx="1.5" stroke-dasharray="2.5 2.5"/><rect x="13" y="13" width="7" height="6.5" rx="1.5"/></svg>
+          </div>
+          <div class="feature-card-title">Workout Planner Interaktif</div>
+          <div class="feature-card-desc">Seret dan atur ulang jadwal harian langsung di browser dengan analisis recovery otomatis, siap dijalankan lewat Workout Log.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon red">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h5"/><path d="M8 12.5l1.5 1.5L13 10"/><path d="M8 16h4"/></svg>
+          </div>
+          <div class="feature-card-title">Workout Log Harian</div>
+          <div class="feature-card-desc">Centang tiap latihan saat dikerjakan; progres harian otomatis sinkron dengan jadwal Planner dan tersimpan ke Riwayat Sesi.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon pink">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h10a1 1 0 011 1V21l-6-3.7L6 21V4.5a1 1 0 011-1z"/></svg>
+          </div>
+          <div class="feature-card-title">Latihan Favorit</div>
+          <div class="feature-card-desc">Simpan latihan favorit untuk akses cepat dan referensi sesi berikutnya.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon yellow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 108.5-8.5"/><path d="M3.5 5v4.5H8"/><path d="M12 8v4l3 2"/></svg>
+          </div>
+          <div class="feature-card-title">Riwayat Sesi</div>
+          <div class="feature-card-desc">Lihat kembali detail Workout Log dan muat ulang program dari sesi latihan sebelumnya kapan saja tanpa asesmen ulang.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PREVIEW PROGRAM LATIHAN ── -->
+  <hr class="home-divider">
+  <div class="home-section reveal">
+    <div class="home-section-label">Preview Program</div>
+    <div class="home-section-title">Lihat Hasil<br>Rekomendasi</div>
+    <div class="home-section-desc">Berikut contoh program latihan yang dihasilkan ExpertGym berdasarkan hasil asesmen pengguna.</div>
+    <div class="workout-preview-wrap">
+      <div class="workout-preview-card reveal">
+        <div class="wpc-header">
+          <div class="wpc-title">Senin: Push Day</div>
+          <div class="wpc-badge beginner">Beginner</div>
+        </div>
+        <div class="wpc-body">
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Bench Press</div><div class="wpc-ex-meta">3×12</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Dumbbell Shoulder Press</div><div class="wpc-ex-meta">3×12</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Incline Dumbbell Press</div><div class="wpc-ex-meta">3×15</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Lateral Raises</div><div class="wpc-ex-meta">3×15</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Tricep Pushdown</div><div class="wpc-ex-meta">3×12</div></div>
+        </div>
+      </div>
+      <div class="workout-preview-card reveal">
+        <div class="wpc-header">
+          <div class="wpc-title">Rabu: Pull Day</div>
+          <div class="wpc-badge beginner">Beginner</div>
+        </div>
+        <div class="wpc-body">
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Lat Pulldown</div><div class="wpc-ex-meta">3×12</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Seated Cable Row</div><div class="wpc-ex-meta">3×12</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Dumbbell Row</div><div class="wpc-ex-meta">3×12</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Face Pull</div><div class="wpc-ex-meta">3×15</div></div>
+          <div class="wpc-ex-row"><div class="wpc-ex-dot"></div><div class="wpc-ex-name">Dumbbell Curl</div><div class="wpc-ex-meta">3×12</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VALIDASI PERSONAL TRAINER ── -->
+  <hr class="home-divider">
+  <section class="trainer-section reveal" id="trainerSection">
+    <div class="trainer-section-header">
+      <div class="home-section-label">Divalidasi oleh Personal Trainer</div>
+      <h2 class="trainer-section-title">Rekomendasi yang <em>Telah Divalidasi</em></h2>
+      <p class="trainer-section-desc">Aturan rekomendasi, program latihan, dan struktur jadwal ExpertGym telah melalui proses validasi oleh personal trainer untuk memastikan kesesuaiannya dengan prinsip latihan dan kebutuhan pengguna.</p>
+    </div>
+    <div class="trainer-grid" id="trainerGrid">
+      <!-- Dirender oleh renderTrainerSection() -->
+    </div>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <hr class="home-divider">
+  <div class="home-section reveal">
+    <div class="home-section-title">Pertanyaan Umum</div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Apakah sistem ini cocok untuk pemula total?
+          <div class="faq-q-icon">+</div>
+        </div>
+        <div class="faq-a">Ya. ExpertGym dirancang untuk tiga tingkat kemampuan: Beginner, Intermediate, dan Expert. Jika Anda belum pernah berlatih di gym, sistem akan menyesuaikan rekomendasi dengan tingkat Beginner dan memberikan latihan yang sesuai dengan kemampuan Anda.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Bagaimana jika saya memiliki cedera atau kondisi medis?
+          <div class="faq-q-icon">+</div>
+        </div>
+        <div class="faq-a">Sistem akan mempertimbangkan kondisi yang Anda laporkan untuk memberikan peringatan keamanan atau menyesuaikan rekomendasi latihan. Jika diperlukan, sistem juga menyarankan konsultasi dengan tenaga medis sebelum melakukan latihan tertentu.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Apakah program latihan dapat disesuaikan?
+          <div class="faq-q-icon">+</div>
+        </div>
+        <div class="faq-a">Ya. Setelah program dibuat, Anda dapat menyesuaikan jadwal latihan melalui Workout Planner menggunakan fitur drag-and-drop. Sistem juga membantu memberikan informasi terkait recovery apabila terdapat jadwal latihan yang berdekatan atau berpotensi membebani tubuh.</div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /#homeView -->
+
+  <div id="assessmentView">
+  <div class="steps-bar" style="padding-top:44px;padding-bottom:10px;">
+    <div class="step-dot"><div class="step-circle active" id="sc1">1</div><span class="step-label">Asesmen</span></div>
+    <div class="step-line" id="sl1"></div>
+    <div class="step-dot"><div class="step-circle" id="sc2">2</div><span class="step-label">Alat Gym</span></div>
+    <div class="step-line" id="sl2"></div>
+    <div class="step-dot"><div class="step-circle" id="sc3">3</div><span class="step-label">Program</span></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="main-card" id="step1">
+    <div class="card-header">
+      <h2>Asesmen Awal</h2>
+      <p>Jawab 12 pertanyaan berikut untuk menentukan level dan program latihan yang sesuai</p>
+    </div>
+    <div class="card-body">
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">1</span>Sudah berapa lama Anda aktif berlatih di gym?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f1" data-val="a"><input type="radio" name="f1"><div class="radio-dot"></div><div class="radio-text"><strong>Belum pernah (0 bulan)</strong><small>Belum pernah berlatih gym</small></div></label>
+          <label class="radio-option" data-q="f1" data-val="b"><input type="radio" name="f1"><div class="radio-dot"></div><div class="radio-text"><strong>1 hingga 12 bulan</strong><small>Sudah mulai rutin dalam kurun waktu 1 tahun terakhir</small></div></label>
+          <label class="radio-option" data-q="f1" data-val="c"><input type="radio" name="f1"><div class="radio-dot"></div><div class="radio-text"><strong>Lebih dari 12 bulan</strong><small>Berpengalaman dengan program latihan lebih dari setahun</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">2</span>Seberapa rutin Anda berlatih gym selama ini?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f2" data-val="a"><input type="radio" name="f2"><div class="radio-dot"></div><div class="radio-text"><strong>Tidak pernah / 0 kali</strong><small>Belum pernah berlatih atau baru memulai</small></div></label>
+          <label class="radio-option" data-q="f2" data-val="b"><input type="radio" name="f2"><div class="radio-dot"></div><div class="radio-text"><strong>Jarang (1–2 kali/minggu)</strong><small>Berlatih satu sampai dua kali setiap minggu</small></div></label>
+          <label class="radio-option" data-q="f2" data-val="c"><input type="radio" name="f2"><div class="radio-dot"></div><div class="radio-text"><strong>Rutin (3 kali/minggu)</strong><small>Memiliki rutinitas latihan tiga kali setiap minggu</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">3</span>Bagaimana penguasaan teknik dasar gerakan gym Anda?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f3" data-val="a"><input type="radio" name="f3"><div class="radio-dot"></div><div class="radio-text"><strong>Belum menguasai</strong><small>Masih belajar teknik dasar seperti squat, deadlift, dan press</small></div></label>
+          <label class="radio-option" data-q="f3" data-val="b"><input type="radio" name="f3"><div class="radio-dot"></div><div class="radio-text"><strong>Cukup menguasai</strong><small>Memahami teknik dasar dan dapat melakukan gerakan dengan benar</small></div></label>
+          <label class="radio-option" data-q="f3" data-val="c"><input type="radio" name="f3"><div class="radio-dot"></div><div class="radio-text"><strong>Sangat menguasai</strong><small>Mahir dalam teknik dasar dan lanjutan</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">4</span>Apakah Anda memiliki riwayat cedera atau kondisi fisik tertentu?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f4" data-val="a"><input type="radio" name="f4"><div class="radio-dot"></div><div class="radio-text"><strong>Ada riwayat cedera</strong><small>Pernah atau sedang mengalami cedera yang mempengaruhi latihan</small></div></label>
+          <label class="radio-option" data-q="f4" data-val="b"><input type="radio" name="f4"><div class="radio-dot"></div><div class="radio-text"><strong>Kadang ada keluhan</strong><small>Sesekali merasakan nyeri pada bagian tubuh tertentu</small></div></label>
+          <label class="radio-option" data-q="f4" data-val="c"><input type="radio" name="f4"><div class="radio-dot"></div><div class="radio-text"><strong>Sehat bugar</strong><small>Tidak ada riwayat cedera atau kondisi fisik khusus</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">5</span>Apa tujuan utama Anda berlatih di gym?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f5" data-val="a"><input type="radio" name="f5"><div class="radio-dot"></div><div class="radio-text"><strong>Fat Loss</strong><small>Menurunkan berat badan, membakar lemak, dan meningkatkan kebugaran</small></div></label>
+          <label class="radio-option" data-q="f5" data-val="b"><input type="radio" name="f5"><div class="radio-dot"></div><div class="radio-text"><strong>Hypertrophy</strong><small>Membentuk dan membesarkan otot secara estetis</small></div></label>
+          <label class="radio-option" data-q="f5" data-val="c"><input type="radio" name="f5"><div class="radio-dot"></div><div class="radio-text"><strong>Strength</strong><small>Meningkatkan kekuatan maksimal dan performa angkat beban</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">6</span>Pola pembagian sesi latihan yang Anda inginkan?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f6" data-val="a"><input type="radio" name="f6"><div class="radio-dot"></div><div class="radio-text"><strong>Full Body</strong><small>Melatih seluruh tubuh dalam satu sesi</small></div></label>
+          <label class="radio-option" data-q="f6" data-val="b"><input type="radio" name="f6"><div class="radio-dot"></div><div class="radio-text"><strong>Upper-Lower</strong><small>Pisah sesi otot atas dan bawah tubuh</small></div></label>
+          <label class="radio-option" data-q="f6" data-val="c"><input type="radio" name="f6"><div class="radio-dot"></div><div class="radio-text"><strong>Push-Pull-Legs</strong><small>Split 3 kelompok otot per sesi</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">7</span>Berapa lama waktu yang Anda miliki per sesi latihan?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f7" data-val="a"><input type="radio" name="f7"><div class="radio-dot"></div><div class="radio-text"><strong>Singkat, kurang dari 45 menit</strong><small>Waktu terbatas, perlu latihan yang efisien</small></div></label>
+          <label class="radio-option" data-q="f7" data-val="b"><input type="radio" name="f7"><div class="radio-dot"></div><div class="radio-text"><strong>Sedang, 45 hingga 60 menit</strong><small>Waktu cukup untuk sesi latihan terstruktur</small></div></label>
+          <label class="radio-option" data-q="f7" data-val="c"><input type="radio" name="f7"><div class="radio-dot"></div><div class="radio-text"><strong>Lama, lebih dari 60 menit</strong><small>Waktu luang untuk sesi latihan volume tinggi</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">8</span>Bagaimana kondisi fisik Anda secara umum saat ini?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f8" data-val="a"><input type="radio" name="f8"><div class="radio-dot"></div><div class="radio-text"><strong>Kurang bugar</strong><small>Mudah lelah saat aktivitas ringan sehari-hari</small></div></label>
+          <label class="radio-option" data-q="f8" data-val="b"><input type="radio" name="f8"><div class="radio-dot"></div><div class="radio-text"><strong>Cukup bugar</strong><small>Aktif dalam keseharian, tidak mudah lelah</small></div></label>
+          <label class="radio-option" data-q="f8" data-val="c"><input type="radio" name="f8"><div class="radio-dot"></div><div class="radio-text"><strong>Sangat bugar</strong><small>Rutin berolahraga di luar gym, stamina tinggi</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">9</span>Seberapa berat intensitas latihan yang Anda inginkan?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f9" data-val="a"><input type="radio" name="f9"><div class="radio-dot"></div><div class="radio-text"><strong>Ringan</strong><small>Fokus adaptasi tubuh, gerakan dasar</small></div></label>
+          <label class="radio-option" data-q="f9" data-val="b"><input type="radio" name="f9"><div class="radio-dot"></div><div class="radio-text"><strong>Sedang</strong><small>Latihan terstruktur dengan beban progresif</small></div></label>
+          <label class="radio-option" data-q="f9" data-val="c"><input type="radio" name="f9"><div class="radio-dot"></div><div class="radio-text"><strong>Berat</strong><small>Intensitas tinggi dengan target performa maksimal</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">10</span>Bagaimana tingkat aktivitas fisik Anda sehari-hari di luar gym?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f10" data-val="a"><input type="radio" name="f10"><div class="radio-dot"></div><div class="radio-text"><strong>Rendah, banyak duduk</strong><small>Sebagian besar hari dihabiskan duduk</small></div></label>
+          <label class="radio-option" data-q="f10" data-val="b"><input type="radio" name="f10"><div class="radio-dot"></div><div class="radio-text"><strong>Sedang</strong><small>Cukup aktif bergerak dalam keseharian</small></div></label>
+          <label class="radio-option" data-q="f10" data-val="c"><input type="radio" name="f10"><div class="radio-dot"></div><div class="radio-text"><strong>Tinggi</strong><small>Pekerjaan atau aktivitas harian sangat aktif</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">11</span>Bagaimana tingkat mobilitas dan kelenturan tubuh Anda?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f11" data-val="a"><input type="radio" name="f11"><div class="radio-dot"></div><div class="radio-text"><strong>Kaku</strong><small>Tubuh terasa kaku, gerakan terbatas</small></div></label>
+          <label class="radio-option" data-q="f11" data-val="b"><input type="radio" name="f11"><div class="radio-dot"></div><div class="radio-text"><strong>Normal</strong><small>Mobilitas rata-rata, gerakan dasar nyaman</small></div></label>
+          <label class="radio-option" data-q="f11" data-val="c"><input type="radio" name="f11"><div class="radio-dot"></div><div class="radio-text"><strong>Sangat fleksibel</strong><small>Tubuh sangat lentur, range of motion luas</small></div></label>
+        </div>
+      </div>
+      <div class="question-block">
+        <div class="question-label"><span class="q-num">12</span>Berapa usia Anda saat ini?</div>
+        <div class="radio-group">
+          <label class="radio-option" data-q="f12" data-val="a"><input type="radio" name="f12"><div class="radio-dot"></div><div class="radio-text"><strong>Remaja, di bawah 18 tahun</strong><small>Tulang dan otot masih dalam masa perkembangan</small></div></label>
+          <label class="radio-option" data-q="f12" data-val="b"><input type="radio" name="f12"><div class="radio-dot"></div><div class="radio-text"><strong>Dewasa, 18 hingga 50 tahun</strong><small>Usia produktif dengan kemampuan fisik optimal</small></div></label>
+          <label class="radio-option" data-q="f12" data-val="c"><input type="radio" name="f12"><div class="radio-dot"></div><div class="radio-text"><strong>Lansia, di atas 50 tahun</strong><small>Perlu memperhatikan keseimbangan dan beban aman</small></div></label>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="processAsesmen()">Lanjutkan</button>
+    </div>
+  </div>
+
+  <!-- STEP 1B: DYNAMIC QUESTIONS -->
+  <div class="main-card hidden" id="step1b">
+    <div class="card-header">
+      <h2>Pertanyaan Lanjutan</h2>
+      <p>Tentukan jadwal program dan informasi tambahan untuk rekomendasi yang lebih akurat</p>
+    </div>
+    <div class="card-body" id="dynamicQBody"></div>
+  </div>
+
+  <!-- STEP 2: PILIH ALAT -->
+  <div class="main-card hidden" id="step2">
+    <div class="card-header">
+      <h2>Alat yang Tersedia</h2>
+      <p>Pilih alat gym yang Anda miliki atau tersedia di tempat latihan</p>
+    </div>
+    <div class="card-body">
+      <div class="level-display" id="levelDisplay"></div>
+      <div class="score-display hidden" id="scoreDisplay"></div>
+      <div class="fc-trace hidden" id="fcTrace"></div>
+      <div class="question-label" style="margin-bottom:13px;">Pilih alat yang tersedia</div>
+      <!-- expertNote disembunyikan permanen; notifikasi kini per-chip -->
+      <div id="expertNote" class="hidden"></div>
+      <div id="expertGlobalNote" class="hidden" style="margin-bottom:14px;padding:10px 14px;background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.25);border-radius:10px;font-size:.77rem;color:rgba(234,179,8,.9);line-height:1.6;">
+        <strong>Mode Expert:</strong> Semua alat dapat dipilih. Alat dengan sedikit latihan Expert akan dilengkapi oleh latihan Intermediate/Beginner <em>(ditandai badge Pelengkap)</em> agar program tetap lengkap setiap hari.
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:.74rem;color:var(--text-muted);">Pilih alat yang Anda gunakan:</span>
+        <div style="display:flex;gap:7px;">
+          <button class="btn-select-all" id="btnSelectAll" onclick="selectAllEquip()">Pilih Semua</button>
+          <button class="btn-select-all deselect" id="btnDeselectAll" onclick="deselectAllEquip()">Hapus Semua</button>
+        </div>
+      </div>
+      <div class="equip-grid" id="equipGrid"></div>
+      <button class="btn-primary" style="margin-top:26px" onclick="generateReco()">Buat Program</button>
+      <button class="btn-secondary" onclick="goBackToAsesmen()">&lt; Kembali</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: HASIL / WEEKLY SPLIT PROGRAM -->
+  <div class="hidden" id="step3">
+    <div class="main-card">
+      <div class="card-header">
+        <h2>Program Latihan Mingguan</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;" id="resultsMeta"></div>
+      </div>
+
+      <!--  Banner -->
+      <div id="f19Banner" style="padding:16px 34px 0;"></div>
+
+      <!-- Program Summary -->
+      <div class="program-summary" id="programSummary"></div>
+
+      <!-- Split Tabs -->
+      <div class="split-tabs-wrap">
+        <div class="split-tabs" id="splitTabs"></div>
+      </div>
+
+      <!-- ── TOOLBAR JADWAL (muncul setelah program dibuat) ── -->
+      <div class="jadwal-toolbar" id="jadwalToolbar" style="display:none">
+        <div class="jadwal-toolbar-left">
+          <span class="jadwal-mode-label" id="jadwalModeLabel">
+            <span class="mode-dot"></span> Jadwal Default
+          </span>
+        </div>
+        <div class="jadwal-toolbar-right">
+          <button class="btn-jadwal primary" id="btnToggleWKP" onclick="sjToggleWKP()">Atur Jadwal</button>
+        </div>
+      </div>
+
+      <!-- ── INLINE WEEKLY CALENDAR PLANNER ── -->
+      <div class="wkp-section" id="wkpSection">
+        <div class="wkp-inner">
+          <div class="wkp-header">
+            <div class="wkp-title">
+              Perencana Latihan Mingguan
+              <span class="wkp-title-badge">GESER &amp; LETAKKAN</span>
+            </div>
+            <div class="wkp-hint">Geser kartu untuk mengatur ulang jadwal</div>
+          </div>
+          <div class="wkp-grid" id="wkpGrid"></div>
+          <div class="wkp-warn-strip" id="wkpWarnStrip"></div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <button class="btn-jadwal" onclick="sjWKPSave()" style="border-color:rgba(74,222,128,.35);color:var(--green);font-size:.76rem;">Simpan Jadwal</button>
+            <button class="btn-jadwal" id="wkpResetBtn" onclick="sjWKPReset()" style="border-color:rgba(239,68,68,.3);color:rgba(239,68,68,.7);font-size:.76rem;display:none;">↺ Reset Default</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day Content -->
+      <div class="results-grid" id="recoContainer"></div>
+    </div>
+
+    <div style="max-width:800px;margin:0 auto 28px;display:flex;gap:9px;padding:0 18px;flex-wrap:wrap;align-items:stretch">
+      <button class="btn-action-row" onclick="goBack(2)">Ubah Alat</button>
+      <div id="simpanHasilWrap" style="flex:1;display:flex"></div>
+      <button class="btn-action-row btn-action-wlog hidden" id="btnMulaiWorkout" onclick="startWorkoutSession()">Mulai Workout</button>
+      <button class="btn-action-row btn-action-primary" onclick="restartApp()">Ulangi Asesmen</button>
+    </div>
+  </div>
+
+  </div><!-- /#assessmentView -->
+
+  <div id="homeTrailerView">
+  <hr class="home-divider">
+  <!-- =================== CTA PENUTUP =================== -->
+  <div class="home-cta-closing reveal">
+    <div class="home-cta-closing-title">Siap Menyusun Program<br>Latihan Anda Sendiri?</div>
+    <div class="home-cta-closing-desc">Isi asesmen singkat dan dapatkan program latihan mingguan yang disusun sesuai kemampuan, tujuan, dan alat yang Anda miliki.</div>
+    <button class="hero-cta-primary" id="trailerCtaAssessment" onclick="startNewAssessment()">Mulai Asesmen</button>
+  </div>
+
+  </div><!-- /#homeTrailerView -->
+
+<!-- =================== WORKOUT LOG VIEW =================== -->
+<div id="wlogView" class="hidden">
+  <div class="wlog-page">
+
+    <!-- HEADER -->
+    <div class="wlog-page-header">
+      <div>
+        <div class="wlog-page-label">Aktivitas</div>
+        <h2 class="wlog-page-title">Workout Log</h2>
+      </div>
+      <button class="nav-btn" onclick="showView('home')">Beranda</button>
+    </div>
+
+    <!-- PROGRAM AKTIF -->
+    <div id="wlogActiveSession" class="hidden">
+
+      <!-- Info program + progress keseluruhan -->
+      <div class="wlog-program-card">
+        <div class="wlog-program-header">
+          <div>
+            <div class="wlog-program-title" id="wlogSessionTitle">Program Latihan</div>
+            <div class="wlog-program-meta" id="wlogSessionMeta">—</div>
+          </div>
+          <div class="wlog-program-pct-wrap">
+            <div class="wlog-program-pct" id="wlogSessionPct">0%</div>
+            <div class="wlog-program-pct-label">selesai</div>
+          </div>
+        </div>
+        <div class="wlog-overall-bar">
+          <div class="wlog-overall-bar-fill" id="wlogProgressFill"></div>
+        </div>
+        <div class="wlog-overall-label" id="wlogProgressLabel">0 dari 0 hari latihan selesai</div>
+      </div>
+
+      <!-- Daftar hari (collapsible) -->
+      <div class="wlog-day-list" id="wlogExerciseList"></div>
+
+      <!-- Tombol bawah -->
+      <div class="wlog-bottom-actions">
+        <button class="wlog-btn-reset" onclick="wlogResetProgram()">Reset Progres</button>
+        <button class="wlog-btn-delete" onclick="wlogDeleteProgram()">Hapus Program</button>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="wlogNoSession" class="hidden">
+      <div class="wlog-empty">
+        <div class="wlog-empty-title">Belum Ada Program Aktif</div>
+        <div class="wlog-empty-body">
+          Selesaikan asesmen lalu tekan <strong>Mulai Workout</strong><br>
+          di halaman hasil rekomendasi.
+        </div>
+        <button class="wlog-btn-start" onclick="startNewAssessment()">Mulai Asesmen</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /#appScreen -->
+
+<!-- =================== ADMIN =================== -->
+<div id="adminScreen">
+  <nav class="admin-nav">
+    <div class="nav-left">
+      <div class="nav-logo">Expert<span>Gym</span></div>
+      <span class="admin-badge">Admin Panel</span>
+    </div>
+    <div class="nav-right">
+      <button class="nav-btn nav-btn-logout" onclick="doLogout()">Keluar</button>
+    </div>
+  </nav>
+  <div class="admin-subnav">
+    <button class="admin-subnav-tab active" id="adminTabHome" onclick="showAdminView('home')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+      Beranda
+    </button>
+    <button class="admin-subnav-tab" id="adminTabExercise" onclick="showAdminView('exercise')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/><rect x="2" y="9" width="6" height="6" rx="1"/><rect x="16" y="9" width="6" height="6" rx="1"/></svg>
+      Kelola Data Latihan
+    </button>
+    <button class="admin-subnav-tab" id="adminTabTrainer" onclick="showAdminView('trainer')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Kelola Profil Personal Trainer
+    </button>
+  </div>
+  <div class="admin-body">
+
+    <!-- ===== HALAMAN: BERANDA ADMIN ===== -->
+    <div id="adminHomeView" class="admin-page">
+      <div class="admin-header">
+        <h2><span id="adminHomeGreeting">Halo</span>, <strong id="adminHomeName">Admin</strong></h2>
+        <p>Berikut ringkasan singkat sistem sebelum Anda mulai mengelola data.</p>
+      </div>
+
+      <div class="admin-home-stats">
+        <div class="admin-home-stat">
+          <div class="admin-home-stat-num" id="statTotalLatihan">–</div>
+          <div class="admin-home-stat-label">Data Latihan</div>
+        </div>
+        <div class="admin-home-stat">
+          <div class="admin-home-stat-num" id="statCustomLatihan">–</div>
+          <div class="admin-home-stat-label">Latihan Ditambah Admin</div>
+        </div>
+        <div class="admin-home-stat">
+          <div class="admin-home-stat-num" id="statTotalTrainer">–</div>
+          <div class="admin-home-stat-label">Personal Trainer</div>
+        </div>
+      </div>
+
+      <div class="admin-section-title">Latihan Terbaru Ditambahkan</div>
+      <div class="admin-home-recent" id="adminHomeRecent">
+        <div class="admin-home-recent-empty">Memuat data…</div>
+      </div>
+
+    </div>
+
+    <!-- ===== HALAMAN: KELOLA DATA LATIHAN ===== -->
+    <div id="adminExerciseView" class="admin-page hidden">
+      <div class="admin-header">
+        <h2>Kelola Data Latihan</h2>
+        <p>Tambah, edit, dan hapus data latihan sebagai basis pengetahuan sistem.</p>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title" id="adminFormTitle">Tambah Data Latihan</div>
+        <div class="admin-form-card">
+          <input type="hidden" id="editingTitle">
+          <div class="form-row">
+            <div class="form-group"><label class="admin-field-label">Nama Latihan *</label><input class="admin-input" id="addTitle" placeholder="Contoh: Barbell Squat"></div>
+            <div class="form-group"><label class="admin-field-label">Alat</label>
+              <div class="custom-dropdown" id="addEquipment" data-placeholder="Pilih Alat" tabindex="0">
+                <div class="custom-dropdown-trigger">
+                  <span class="custom-dropdown-label">Pilih Alat</span>
+                  <svg class="custom-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="custom-dropdown-panel">
+                  <div class="custom-dropdown-option" data-value="Body Only">Body Only</div>
+                  <div class="custom-dropdown-option" data-value="Dumbbell">Dumbbell</div>
+                  <div class="custom-dropdown-option" data-value="Barbell">Barbell</div>
+                  <div class="custom-dropdown-option" data-value="Machine">Machine</div>
+                  <div class="custom-dropdown-option" data-value="Cable">Cable</div>
+                  <div class="custom-dropdown-option" data-value="Bands">Bands</div>
+                  <div class="custom-dropdown-option" data-value="Kettlebells">Kettlebells</div>
+                  <div class="custom-dropdown-option" data-value="Medicine Ball">Medicine Ball</div>
+                  <div class="custom-dropdown-option" data-value="Exercise Ball">Exercise Ball</div>
+                  <div class="custom-dropdown-option" data-value="E-Z Curl Bar">E-Z Curl Bar</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="admin-field-label">Level</label>
+              <div class="custom-dropdown" id="addLevel" data-placeholder="Pilih Level" tabindex="0">
+                <div class="custom-dropdown-trigger">
+                  <span class="custom-dropdown-label">Pilih Level</span>
+                  <svg class="custom-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="custom-dropdown-panel">
+                  <div class="custom-dropdown-option" data-value="Beginner">Beginner</div>
+                  <div class="custom-dropdown-option" data-value="Intermediate">Intermediate</div>
+                  <div class="custom-dropdown-option" data-value="Expert">Expert</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="admin-field-label">Body Part</label>
+              <div class="custom-dropdown" id="addBodyPart" data-placeholder="Pilih Body Part" tabindex="0">
+                <div class="custom-dropdown-trigger">
+                  <span class="custom-dropdown-label">Pilih Body Part</span>
+                  <svg class="custom-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="custom-dropdown-panel">
+                  <div class="custom-dropdown-option" data-value="Abdominals">Abdominals</div>
+                  <div class="custom-dropdown-option" data-value="Abductors">Abductors</div>
+                  <div class="custom-dropdown-option" data-value="Adductors">Adductors</div>
+                  <div class="custom-dropdown-option" data-value="Biceps">Biceps</div>
+                  <div class="custom-dropdown-option" data-value="Calves">Calves</div>
+                  <div class="custom-dropdown-option" data-value="Chest">Chest</div>
+                  <div class="custom-dropdown-option" data-value="Forearms">Forearms</div>
+                  <div class="custom-dropdown-option" data-value="Glutes">Glutes</div>
+                  <div class="custom-dropdown-option" data-value="Hamstrings">Hamstrings</div>
+                  <div class="custom-dropdown-option" data-value="Lats">Lats</div>
+                  <div class="custom-dropdown-option" data-value="Lower Back">Lower Back</div>
+                  <div class="custom-dropdown-option" data-value="Middle Back">Middle Back</div>
+                  <div class="custom-dropdown-option" data-value="Neck">Neck</div>
+                  <div class="custom-dropdown-option" data-value="Quadriceps">Quadriceps</div>
+                  <div class="custom-dropdown-option" data-value="Shoulders">Shoulders</div>
+                  <div class="custom-dropdown-option" data-value="Traps">Traps</div>
+                  <div class="custom-dropdown-option" data-value="Triceps">Triceps</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="admin-field-label">Tipe</label>
+              <div class="custom-dropdown" id="addType" data-placeholder="Pilih Tipe" tabindex="0">
+                <div class="custom-dropdown-trigger">
+                  <span class="custom-dropdown-label">Pilih Tipe</span>
+                  <svg class="custom-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="custom-dropdown-panel">
+                  <div class="custom-dropdown-option" data-value="Cardio">Cardio</div>
+                  <div class="custom-dropdown-option" data-value="Olympic Weightlifting">Olympic Weightlifting</div>
+                  <div class="custom-dropdown-option" data-value="Plyometrics">Plyometrics</div>
+                  <div class="custom-dropdown-option" data-value="Powerlifting">Powerlifting</div>
+                  <div class="custom-dropdown-option" data-value="Strength">Strength</div>
+                  <div class="custom-dropdown-option" data-value="Strongman">Strongman</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:4px;"><label class="admin-field-label">Deskripsi</label><textarea class="admin-textarea" id="addDesc" placeholder="Deskripsi gerakan..."></textarea></div>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button class="btn-admin-save" id="btnAdminSave" onclick="adminSaveExercise()">+ Tambah Latihan</button>
+            <button class="btn-admin-cancel hidden" id="btnAdminCancel" onclick="adminCancelEdit()">Batal</button>
+          </div>
+        </div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">Daftar Latihan <span class="exercise-count-badge" id="exCountBadge">0</span></div>
+        <div class="admin-table-wrap">
+          <div class="table-toolbar">
+            <input class="admin-search" id="adminExSearch" placeholder="Cari nama atau body part..." oninput="renderAdminExTable()">
+            <select class="admin-select" id="adminExFilter" onchange="renderAdminExTable()"><option value="">Semua Level</option><option>Beginner</option><option>Intermediate</option><option>Expert</option></select>
+            <select class="admin-select" id="adminEqFilter" onchange="renderAdminExTable()"><option value="">Semua Alat</option><option>Body Only</option><option>Dumbbell</option><option>Barbell</option><option>Machine</option><option>Cable</option><option>Bands</option><option>Kettlebells</option><option>Medicine Ball</option><option>Exercise Ball</option><option>E-Z Curl Bar</option></select>
+            <select class="admin-select" id="adminExSort" onchange="renderAdminExTable()">
+              <option value="newest">Terbaru > Terlama</option>
+              <option value="oldest">Terlama > Terbaru</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="admin-table">
+              <thead><tr><th>#</th><th>Nama Latihan</th><th>Level</th><th>Alat</th><th>Body Part</th><th>Tipe</th><th>Admin</th><th style="text-align:center">Aksi</th></tr></thead>
+              <tbody id="adminExBody"></tbody>
+            </table>
+          </div>
+          <div style="padding:11px 16px;font-size:.76rem;color:var(--text-muted);border-top:1px solid var(--border);" id="adminExPager"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== HALAMAN: KELOLA PROFIL PERSONAL TRAINER ===== -->
+    <div id="adminTrainerView" class="admin-page hidden">
+      <div class="admin-header">
+        <h2>Kelola Profil Personal Trainer</h2>
+        <p>Tambah, edit, dan hapus profil personal trainer yang ditampilkan pada sistem.</p>
+      </div>
+      <div class="admin-section trainer-manage-section">
+        <div class="admin-section-title">Daftar Personal Trainer<button class="btn-add-trainer" onclick="openTrainerFormModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah Trainer
+        </button></div>
+        <div class="trainer-admin-toolbar">
+          <div class="trainer-search-wrap">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="trainerSearchInput" class="trainer-search-input" placeholder="Cari nama trainer..." oninput="renderAdminTrainerSection()">
+          </div>
+          <div class="trainer-admin-count" id="trainerAdminCount"></div>
+        </div>
+        <div class="trainer-admin-grid" id="adminTrainerSection">
+          <!-- Dirender oleh renderAdminTrainerSection() -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- =================== MODAL: SIMPAN HASIL (GUEST) =================== -->
+<div class="modal-overlay hidden" id="guestSaveModal" onclick="closeGuestSaveModal(event)">
+  <div class="modal" style="max-width:420px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Simpan Hasil Latihan</div>
+      <button class="modal-close" onclick="closeGuestSaveModal()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 26px 32px;">
+      <p style="font-size:.97rem;color:var(--white);font-weight:600;margin-bottom:8px;letter-spacing:-.2px;">
+        Apakah Anda sudah memiliki akun?
+      </p>
+      <p style="font-size:.83rem;color:var(--text-muted);margin-bottom:28px;line-height:1.6;">
+        Hasil rekomendasi mode tamu ini tidak dapat disimpan ke riwayat akun. Login atau daftar terlebih dahulu, lalu ulangi asesmen agar hasilnya tersimpan di riwayat akun Anda.
+      </p>
+      <div style="display:flex;gap:10px;flex-direction:column;">
+        <button class="btn-primary" style="width:100%;font-size:.92rem;padding:13px;" onclick="guestGoLogin()">
+          Login (Sudah punya akun)
+        </button>
+        <button class="btn-secondary" style="width:100%;font-size:.92rem;padding:13px;" onclick="guestGoRegister()">
+          Registrasi (Buat akun baru)
+        </button>
+        <button onclick="closeGuestSaveModal()" style="background:none;border:none;color:var(--text-muted);font-size:.8rem;cursor:pointer;margin-top:4px;padding:6px;">
+          Batalkan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TRAINER FORM MODAL (Tambah / Edit) ══════════ -->
+<div class="modal-overlay hidden" id="trainerFormModal" onclick="closeTrainerFormModalOverlay(event)">
+  <div class="modal" style="max-width:580px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="trainerFormModalTitle">Tambah Trainer</div>
+      <button class="modal-close" onclick="closeTrainerFormModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="trainerFormId" value="">
+
+      <div class="trainer-form-photo-row">
+        <div class="trainer-form-photo-preview" id="trainerFormPhotoPreview">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <button type="button" class="btn-change-photo" onclick="triggerTrainerFormPhotoInput()">Unggah Foto</button>
+          <input type="file" class="photo-upload-input" id="trainerFormPhotoInput" accept="image/*" onchange="handleTrainerFormPhotoChange(this)">
+          <div class="trainer-form-hint">JPG/PNG, disarankan rasio 1:1</div>
+        </div>
+      </div>
+
+      <div class="trainer-form-grid">
+        <div class="form-group">
+          <label class="admin-field-label" for="trainerFormName">Nama</label>
+          <input type="text" class="admin-input" id="trainerFormName" placeholder="Contoh: David Pratama, S.Or.">
+        </div>
+        <div class="form-group">
+          <label class="admin-field-label" for="trainerFormTitleInput">Spesialisasi</label>
+          <input type="text" class="admin-input" id="trainerFormTitleInput" placeholder="Contoh: Bodybuilding Specialist">
+        </div>
+        <div class="form-group">
+          <label class="admin-field-label" for="trainerFormExperience">Pengalaman</label>
+          <input type="text" class="admin-input" id="trainerFormExperience" placeholder="Contoh: 5 tahun">
+        </div>
+        <div class="form-group">
+          <label class="admin-field-label" for="trainerFormContact">Kontak</label>
+          <input type="text" class="admin-input" id="trainerFormContact" placeholder="Contoh: 0812-3456-7890">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="admin-field-label" for="trainerFormCerts">Sertifikasi <span class="trainer-form-hint-inline">(satu per baris)</span></label>
+        <textarea class="admin-input profile-edit-textarea" id="trainerFormCerts" rows="3" placeholder="Contoh:&#10;IFBA Certified Personal Trainer&#10;Specialized in Bodybuilding"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="admin-field-label" for="trainerFormContrib">Kontribusi Validasi <span class="trainer-form-hint-inline">(satu per baris)</span></label>
+        <textarea class="admin-input profile-edit-textarea" id="trainerFormContrib" rows="3" placeholder="Contoh:&#10;Memvalidasi dataset latihan Compound > Isolation"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="admin-field-label">Foto Sertifikat</label>
+        <div class="trainer-form-cert-row">
+          <div class="trainer-form-cert-preview" id="trainerFormCertPreview">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <button type="button" class="btn-change-photo" onclick="triggerTrainerFormCertInput()">Unggah Sertifikat</button>
+          <input type="file" class="photo-upload-input" id="trainerFormCertInput" accept="image/*" onchange="handleTrainerFormCertChange(this)">
+        </div>
+      </div>
+
+      <div class="trainer-form-actions">
+        <button type="button" class="btn-cancel-photo" onclick="closeTrainerFormModal()">Batal</button>
+        <button type="button" class="btn-save-photo" onclick="submitTrainerForm()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TRAINER DETAIL MODAL (read-only) ══════════ -->
+<div class="modal-overlay hidden" id="trainerDetailModal" onclick="closeTrainerDetailModalOverlay(event)">
+  <div class="modal" style="max-width:480px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Detail Trainer</div>
+      <button class="modal-close" onclick="closeTrainerDetailModal()">✕</button>
+    </div>
+    <div class="modal-body" id="trainerDetailBody">
+      <!-- Dirender oleh openTrainerDetailModal() -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TRAINER DELETE CONFIRM MODAL ══════════ -->
+<div class="modal-overlay hidden" id="trainerDeleteModal" onclick="closeTrainerDeleteConfirmOverlay(event)">
+  <div class="modal" style="max-width:400px;" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Hapus Trainer?</div>
+      <button class="modal-close" onclick="closeTrainerDeleteConfirm()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:8px 26px 28px;">
+      <p id="trainerDeleteConfirmText" style="font-size:.87rem;color:var(--white);line-height:1.6;margin-bottom:24px;"></p>
+      <div style="display:flex;gap:10px;">
+        <button type="button" class="btn-cancel-photo" style="flex:1;" onclick="closeTrainerDeleteConfirm()">Batal</button>
+        <button type="button" class="btn-delete-trainer-confirm" style="flex:1;" onclick="confirmDeleteTrainer()">Hapus Trainer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/dataset.js"></script>
+<script src="js/forward-chaining.js"></script>
+<script src="js/app.js"></script>
+<!-- UI Dialogs: dialog konfirmasi kustom (pengganti confirm() bawaan browser)
+     supaya peringatan tampil dari halaman website, bukan popup browser -->
+<script src="js/ui-dialogs.js"></script>
+<!-- Auth Layer: localStorage mode -->
+<script src="js/auth.js"></script>
+<!-- Secure Auth Layer: backend API mode (Login Admin, Registrasi/Login User)
+     — tabel terpisah admin & user sesuai ERD. Dimuat setelah auth.js supaya
+     override doLogin/doRegister/doLogout versi backend yang aktif. -->
+<script src="js/secure-auth.js"></script>
+<!-- Trainer Layer: backend API mode (Kelola Personal Trainer) -->
+<script src="js/trainer.js"></script>
+<!-- Admin Layer: localStorage mode -->
+<script src="js/admin.js"></script>
+<script src="js/custom-dropdown.js"></script>
+<!-- Exercise Layer: backend API mode (Kelola Data Latihan) — dimuat setelah
+     admin.js supaya override getAllExercises/renderAdminExTable/dst versi
+     backend yang aktif, menggantikan versi localStorage di admin.js -->
+<script src="js/exercise.js"></script>
+<!-- Favorite Layer: backend API mode (Favorit) — dimuat setelah exercise.js
+     supaya getAllExercises() yang dipakai untuk mencocokkan favorit sudah
+     gabungan dataset bawaan + data_latihan admin yang terbaru. -->
+<script src="js/favorite.js"></script>
+<!-- Riwayat Layer: backend API mode (Riwayat Rekomendasi) -->
+<script src="js/riwayat.js"></script>
+<!-- Focus Navigation: Enter key moves focus between form fields -->
+<script src="js/wlog.js"></script>
+<!-- Workout Log Layer: backend API mode (Workout Log) — membungkus fungsi
+     wlog.js yang sudah ada, dimuat setelahnya. -->
+<script src="js/workout-log.js"></script>
+<script src="js/focus-navigation.js"></script>
+<!-- Mobile UI Layer: hanya menyesuaikan TAMPILAN untuk layar mobile
+     (hamburger dihapus, header disederhanakan, bottom navigation,
+     asesmen step-by-step, dsb). Dimuat PALING TERAKHIR dan hanya
+     MEMBUNGKUS (wrap) fungsi yang sudah ada — tidak mengubah logika
+     Forward Chaining, dataset, maupun perhitungan rekomendasi. -->
+<script src="js/mobile-ui.js"></script>
+</body>
+</html>

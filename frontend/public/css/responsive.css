@@ -1,0 +1,899 @@
+/* ══════════════════════════════════════════════════════════
+   📍 Tahap Alur Penelitian: Perancangan Sistem → Desain Antarmuka, lalu
+      diimplementasikan pada Implementasi Sistem → Pengembangan Sistem →
+      Implementasi Website. Lihat PETA_ALUR_PENELITIAN.md di root project.
+   EXPERTGYM — RESPONSIVE STYLESHEET
+   Mobile-first additions: Navbar, Cards, Tables, Forms, Buttons
+   Breakpoints: 480px (sm), 640px (md), 768px (lg-tablet), 1024px (desktop)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── GLOBAL SAFE DEFAULTS ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}
+/* Prevent horizontal overflow everywhere */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NAVBAR — APP & ADMIN
+   ══════════════════════════════════════════════════════════ */
+
+/* ── ADMIN NAV — tablet & mobile (≤768px) ────────────────────
+   Catatan: hamburger/drawer untuk nav APP (bukan admin) dipindah
+   ke blok ≤640px di bawah, karena mulai 641px nav app sekarang
+   memakai pola ringkas ala mobile (lihat css/mobile.css bagian 1
+   & 2) — bukan lagi hamburger drawer. */
+@media (max-width: 768px) {
+  nav:not(.auth-nav):not(.admin-nav) {
+    padding: 10px 16px;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+  .nav-left {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Admin nav-right: tetap tampil normal (bukan drawer), tombol logout selalu terlihat */
+  .admin-nav .nav-right {
+    display: flex;
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+    height: auto;
+    background: transparent;
+    border-left: none;
+    padding: 0;
+    box-shadow: none;
+    gap: 8px;
+  }
+
+  /* Admin nav */
+  .admin-nav {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  /* Tombol di admin-nav bukan bagian drawer, jangan ikut full-width/stacked */
+  .admin-nav .nav-btn {
+    width: auto;
+    text-align: center;
+    justify-content: center;
+    white-space: nowrap;
+  }
+  .admin-nav .nav-btn-logout {
+    margin-top: 0;
+  }
+  .admin-subnav {
+    padding: 0 16px;
+    /* Sebelumnya "top:0" membuat admin-subnav numpuk/tertutup di belakang
+       .admin-nav saat discroll (dua elemen sticky sama-sama nempel di
+       y=0, dan admin-nav yang menang karena z-index lebih tinggi).
+       Tinggi .admin-nav di mobile juga tidak tetap (bisa wrap 2 baris),
+       jadi offset "top" yang pas sulit dipastikan. Solusi paling aman:
+       matikan sticky-nya di mobile supaya tab "Kelola Profil Personal
+       Trainer" ikut discroll bersama halaman, tidak pernah tertutup. */
+    position: static;
+    top: auto;
+  }
+  .admin-subnav-tab {
+    padding: 12px 12px;
+    font-size: .78rem;
+  }
+}
+
+/* ── HAMBURGER + DRAWER NAV (nav APP, bukan admin) — HANYA mobile
+   sempit ≤640px. Di atas 640px (tablet), nav app dipegang penuh
+   oleh css/mobile.css (pola ringkas: tanpa hamburger, tombol
+   Favorit + Keluar/Masuk saja di kanan atas, menu utama pindah ke
+   bottom navigation). ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Hamburger tampil (fallback jika mobile.css gagal dimuat) */
+  .hamburger-btn { display: flex; }
+
+  /* nav-right jadi drawer dari kanan (khusus nav app, bukan admin) */
+  nav:not(.admin-nav) .nav-right {
+    position: fixed;
+    top: 0;
+    right: -280px;
+    width: 260px;
+    height: 100dvh;
+    background: var(--gray2);
+    border-left: 1px solid var(--border);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 70px 16px 32px;
+    z-index: 1000;
+    transition: right .28s cubic-bezier(.4,0,.2,1);
+    overflow-y: auto;
+    box-shadow: -8px 0 32px rgba(0,0,0,.35);
+  }
+  nav:not(.admin-nav) .nav-right.nav-open {
+    right: 0;
+  }
+
+  /* Tombol di drawer lebih besar & full-width */
+  .nav-btn {
+    font-size: .84rem;
+    font-weight: 600;
+    color: var(--white);
+    background: rgba(255,255,255,.04);
+    padding: 12px 16px;
+    width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+    border-radius: 9px;
+    white-space: nowrap;
+    border-color: var(--border2);
+  }
+  .nav-btn:hover, .nav-btn:active {
+    background: rgba(232,255,74,.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .nav-btn-logout {
+    color: rgba(239,68,68,.85);
+  }
+  .nav-btn-assessment {
+    order: -1; /* Mulai Asesmen paling atas */
+    margin-bottom: 4px;
+  }
+  .nav-btn-logout {
+    margin-top: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-right { width: 240px; right: -260px; }
+}
+
+@media (max-width: 480px) {
+  .nav-logo { font-size: 1.1rem; }
+  .nav-user-pill { display: none; } /* Hide user pill on tiny screens */
+  .auth-nav { padding: 14px 16px; }
+  .auth-badge { display: none; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUTH SCREEN — tablet & mobile: kartu login/daftar diposisikan
+   lebih ke tengah (bukan mepet atas)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .auth-body {
+    align-items: center;
+    justify-content: center;
+    padding: 32px 18px;
+    min-height: calc(100dvh - 60px);
+    min-height: calc(100vh - 60px);
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-body {
+    padding: 20px 14px;
+    align-items: center;
+  }
+  .auth-card {
+    border-radius: 12px;
+  }
+  .auth-form {
+    padding: 22px 18px;
+  }
+  .auth-form h2 { font-size: 1.1rem; }
+  .auth-form p { font-size: .8rem; margin-bottom: 18px; }
+  .btn-auth, .btn-guest { padding: 12px; font-size: .88rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   HERO SECTION
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .hero {
+    padding: 44px 20px 40px;
+    min-height: 0;
+  }
+  /* Font diperkecil & letter-spacing dirapatkan agar "Temukan Program
+     Latihan" tetap satu baris di layar mobile, tidak terpotong ke
+     baris "Latihan" sendirian */
+  h1 {
+    font-size: clamp(1.4rem, 7vw, 1.85rem);
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    font-size: .9rem;
+    margin-bottom: 28px;
+  }
+  .hero-cta-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 0;
+  }
+  .hero-cta-primary,
+  .hero-cta-secondary {
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+    padding: 15px 24px;
+    font-size: .92rem;
+    border-radius: 12px;
+  }
+  .hero-cta-primary {
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(232,255,74,.14);
+  }
+  .hero-cta-primary:active {
+    transform: scale(.98);
+    box-shadow: 0 2px 8px rgba(232,255,74,.12);
+  }
+  .hero-cta-secondary {
+    background: rgba(255,255,255,.03);
+    border-color: var(--border2);
+  }
+  .hero-cta-secondary:active {
+    transform: scale(.98);
+    background: rgba(255,255,255,.05);
+  }
+  .hero-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 12px;
+  }
+  .hero-stat {
+    padding: 16px 12px;
+  }
+  .hero-stat+.hero-stat::before {
+    display: none;
+  }
+  .hero-stat:nth-child(2)::before,
+  .hero-stat:nth-child(3)::before,
+  .hero-stat:nth-child(4)::before {
+    display: none;
+  }
+  /* top-border separator between rows */
+  .hero-stat:nth-child(3),
+  .hero-stat:nth-child(4) {
+    border-top: 1px solid var(--border);
+  }
+  /* right-border between cols */
+  .hero-stat:nth-child(odd) {
+    border-right: 1px solid var(--border);
+  }
+  .hero-stat-val { font-size: 1.25rem; }
+}
+
+@media (max-width: 380px) {
+  .hero-stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   HOME SECTIONS
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .home-section {
+    padding: 44px 18px;
+  }
+  .home-section-title {
+    font-size: 1.4rem;
+    letter-spacing: -1px;
+  }
+  .home-section-desc {
+    font-size: .85rem;
+    margin-bottom: 32px;
+    text-align: justify;
+    text-align-last: left;
+  }
+  .home-validated-banner {
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .home-validated-text span {
+    font-size: .75rem;
+  }
+  .feature-card {
+    padding: 20px 18px;
+  }
+  .feature-card-num {
+    top: 16px;
+    right: 16px;
+  }
+  .home-cta-closing {
+    padding: 50px 18px 64px;
+  }
+  .home-cta-closing-desc {
+    font-size: .85rem;
+    margin-bottom: 26px;
+    text-align: justify;
+    text-align-last: left;
+  }
+  /* Deskripsi lain di Home (hero, langkah cara kerja, kartu fitur) juga
+     dirapikan rata kanan-kiri supaya lebih enak dibaca di layar sempit. */
+  .hero p {
+    text-align: justify;
+    text-align-last: left;
+  }
+  .how-step-desc,
+  .feature-card-desc {
+    text-align: justify;
+    text-align-last: left;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   TRAINER SECTION
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .trainer-section { padding: 40px 18px; }
+  .trainer-card { padding: 18px 16px; }
+  .home-trainer-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   ASSESSMENT STEPS BAR
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .steps-bar {
+    gap: 0;
+    padding-top: 28px !important;
+    margin-bottom: 28px;
+  }
+  .step-circle {
+    width: 28px;
+    height: 28px;
+    font-size: .72rem;
+  }
+  .step-line { width: 36px; margin-bottom: 16px; }
+  .step-label { font-size: .6rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   MAIN CARD (Assessment cards)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .main-card {
+    width: calc(100% - 28px);
+    margin: 0 auto 32px;
+    border-radius: 12px;
+  }
+  .card-header {
+    padding: 18px 18px 14px;
+  }
+  .card-header h2 { font-size: 1.1rem; }
+  .card-body {
+    padding: 18px 18px 24px;
+  }
+}
+
+@media (max-width: 380px) {
+  .main-card {
+    width: calc(100% - 20px);
+    margin: 0 auto 28px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   RADIO OPTIONS (Assessment questions)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .radio-option {
+    padding: 11px 13px;
+    gap: 10px;
+  }
+  .radio-text strong { font-size: .84rem; }
+  .radio-text small { font-size: .72rem; }
+  .question-label {
+    font-size: .83rem;
+    gap: 9px;
+  }
+  .question-block { margin-bottom: 22px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   EQUIPMENT GRID
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .equip-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px;
+  }
+  .equip-chip { padding: 10px 10px; }
+  .equip-label { font-size: .78rem; }
+  .equip-desc { display: none; } /* hide desc on tiny screens */
+  .check-mark { width: 16px; height: 16px; font-size: .65rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESULTS / STEP 3
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .results-grid {
+    padding: 16px 14px 24px;
+    gap: 10px;
+  }
+  .split-tabs-wrap {
+    padding: 0 14px;
+  }
+  .split-tabs {
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .split-tabs::-webkit-scrollbar { display: none; }
+  .split-tab {
+    font-size: .76rem;
+    padding: 11px 14px;
+  }
+  .program-summary {
+    padding: 12px 14px;
+    gap: 7px;
+  }
+  #f19Banner { padding: 12px 14px 0; }
+
+  /* Action row */
+  div[style*="max-width:800px"][style*="display:flex"][style*="gap:9px"] {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    padding: 0 14px;
+  }
+  .btn-action-row {
+    width: 100%;
+    min-width: 0;
+    font-size: .78rem;
+    padding: 10px 8px;
+    white-space: normal;
+    word-break: keep-all;
+    line-height: 1.25;
+    text-align: center;
+    overflow-wrap: break-word;
+  }
+  #simpanHasilWrap {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Layar sangat sempit: gunakan 1 kolom penuh supaya tulisan tombol
+     "Mulai Workout" / "Ulangi Asesmen" tidak keluar dari tombolnya. */
+  div[style*="max-width:800px"][style*="display:flex"][style*="gap:9px"] {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   EXERCISE CARDS
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .exercise-card {
+    padding: 13px 14px;
+    border-radius: 11px;
+  }
+  .ex-title { font-size: .88rem; }
+  .set-rep-row { flex-wrap: wrap; gap: 6px; }
+  .set-rep-badge, .rest-badge { font-size: .71rem; padding: 4px 8px; }
+  .card-actions { flex-wrap: wrap; gap: 6px; }
+  .btn-yt, .btn-detail { font-size: .7rem; padding: 5px 9px; }
+  .btn-fav { margin-left: 0; }
+
+  .warmup-card { padding: 13px 14px; }
+  .wu-step { padding: 7px 9px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   JADWAL TOOLBAR & WEEKLY PLANNER
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .jadwal-toolbar {
+    padding: 10px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .jadwal-toolbar-right {
+    width: 100%;
+    display: flex;
+    gap: 7px;
+  }
+  .btn-jadwal {
+    flex: 1;
+    justify-content: center;
+    font-size: .75rem;
+    padding: 8px 10px;
+  }
+  .wkp-inner {
+    padding: 14px 14px 18px;
+  }
+  .wkp-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODAL
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .modal {
+    border-radius: 14px;
+    max-height: 92vh;
+  }
+  .modal-header { padding: 16px 18px 14px; }
+  .modal-body { padding: 16px 18px; }
+  .modal-title { font-size: .95rem; }
+  .modal-program-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .modal-btn-yt, .modal-btn-fav { flex: none; width: 100%; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   PANELS (Riwayat & Favorit)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 500px) {
+  .panel {
+    width: 100vw;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    top: auto;
+    height: 85vh;
+    animation: slideInBottom .28s ease;
+  }
+  @keyframes slideInBottom {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .panel-header { padding: 16px 18px; }
+  .panel-body   { padding: 14px 18px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   ADMIN SCREEN
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .admin-body {
+    padding: 24px 16px;
+  }
+  .admin-header h2 { font-size: 1.3rem; }
+
+  /* Form rows → single column on tablet */
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* Table horizontal scroll */
+  .admin-table-wrap {
+    overflow: hidden;
+  }
+  div[style*="overflow-x:auto"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-table {
+    min-width: 560px;
+  }
+
+  /* Toolbar wrap */
+  .table-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .admin-search {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  .admin-select {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-nav { padding: 12px 14px; }
+  .admin-badge { font-size: .65rem; padding: 3px 8px; }
+  .admin-form-card { padding: 16px 14px; }
+  .admin-input,
+  .admin-select,
+  .admin-textarea,
+  .custom-dropdown-trigger {
+    font-size: .84rem;
+    padding: 9px 11px;
+  }
+  .btn-admin-save,
+  .btn-admin-cancel {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: .84rem;
+  }
+  div[style*="display:flex"][style*="gap:10px"][style*="margin-top:14px"] {
+    flex-direction: row;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   KELOLA PERSONAL TRAINER (Admin) — responsif
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .trainer-admin-grid {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  }
+  .trainer-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .trainer-manage-section .admin-section-title {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .trainer-manage-section .admin-section-title::after {
+    display: none;
+  }
+  .btn-add-trainer {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .trainer-admin-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .trainer-search-wrap {
+    max-width: none;
+  }
+  .trainer-admin-count {
+    text-align: right;
+  }
+  .trainer-admin-grid {
+    grid-template-columns: 1fr;
+  }
+  .trainer-form-photo-row {
+    flex-wrap: wrap;
+  }
+  .trainer-form-actions {
+    flex-direction: column-reverse;
+  }
+  .trainer-form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .trainer-admin-card {
+    padding: 14px;
+  }
+  .trainer-admin-actions {
+    justify-content: flex-start;
+  }
+  .trainer-icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .trainer-detail-header {
+    flex-wrap: wrap;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  footer {
+    padding: 20px 18px;
+    font-size: .68rem;
+    line-height: 1.7;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   SUBSTITUTION NOTICE — mobile fix
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .sub-item { padding: 11px 12px; }
+  .sub-reason { margin-left: 24px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   FC TRACE & SCORE DISPLAY — mobile
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .fc-trace {
+    font-size: .69rem;
+    padding: 11px 13px;
+  }
+  .score-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .score-val { font-size: 1rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LEVEL DISPLAY
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .level-display { padding: 14px 16px; }
+  .level-name { font-size: 1.3rem; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOAST — full-width on mobile
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .toast {
+    left: 14px;
+    right: 14px;
+    transform: translateX(0) translateY(120px);
+    white-space: normal;
+    text-align: center;
+    max-width: 100%;
+    width: auto;
+  }
+  .toast.show {
+    transform: translateX(0) translateY(0);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   GUEST SAVE MODAL
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .modal-overlay { padding: 14px; }
+  .modal { max-width: 100%; border-radius: 14px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   CERT MODAL
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .cert-modal-body { padding: 16px; }
+  .cert-modal-header { padding: 14px 16px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   FOCUS NAVIGATION VISUAL FEEDBACK
+   (Highlight active focused field clearly)
+   ══════════════════════════════════════════════════════════ */
+.form-input:focus,
+.admin-input:focus,
+.admin-select:focus,
+.admin-textarea:focus {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(232,255,74,.12);
+}
+.custom-dropdown.open .custom-dropdown-trigger {
+  outline: none;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(232,255,74,.12);
+}
+
+/* Keyboard navigation indicator on radio options */
+.radio-option:focus-within {
+  border-color: rgba(232,255,74,.5);
+  background: rgba(232,255,74,.04);
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 0;
+  z-index: 99999;
+  background: var(--accent);
+  color: var(--black);
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: .85rem;
+  border-radius: 0 0 8px 0;
+  transition: top .15s;
+}
+.skip-link:focus { top: 0; }
+
+/* ══════════════════════════════════════════════════════════
+   TABLET-SPECIFIC TWEAKS (768px–1024px)
+   ══════════════════════════════════════════════════════════ */
+@media (min-width: 641px) and (max-width: 1024px) {
+  nav:not(.auth-nav):not(.admin-nav) {
+    padding: 14px 24px;
+  }
+  .hero { padding: 70px 28px 60px; min-height: 570px; }
+  .home-section { padding: 56px 28px; }
+  .main-card { margin: 0 20px 36px; }
+  .results-grid, .program-summary, #f19Banner {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .split-tabs-wrap { padding: 0 24px; }
+  .admin-body { padding: 28px 24px; }
+  .wkp-inner { padding: 18px 24px 22px; }
+  .jadwal-toolbar { padding: 12px 24px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   UTILITY: prevent text overflow in table cells
+   ══════════════════════════════════════════════════════════ */
+.admin-table td {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-table th { white-space: nowrap; }
+
+/* Nama latihan column can wrap */
+.admin-table td:nth-child(2) {
+  white-space: normal;
+  word-break: break-word;
+  min-width: 120px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BUTTON MINIMUM TAP TARGET (44px) — accessibility
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .btn-primary,
+  .btn-secondary,
+  .btn-auth,
+  .btn-guest,
+  .btn-action-row,
+  .btn-jadwal,
+  .btn-admin-save,
+  .btn-admin-cancel,
+  .nav-btn {
+    min-height: 44px;
+  }
+  .btn-yt,
+  .btn-detail,
+  .btn-fav,
+  .admin-action-btn,
+  .fav-action-btn {
+    min-height: 38px;
+  }
+}
+
+/* ── WORKOUT LOG — tablet & mobile ────────────────────────── */
+@media (max-width: 1024px) {
+  .wlog-page                 { max-width: 100%; }
+}
+@media (max-width: 680px) {
+  .wlog-page                 { padding: 20px 14px 48px; }
+  .wlog-page-header           { margin-bottom: 18px; }
+  .wlog-page-title            { font-size: 1.3rem; }
+  .wlog-program-card          { padding: 14px 15px; }
+  .wlog-program-pct           { font-size: 1.3rem; }
+  .wlog-day-header             { padding: 11px 12px; }
+  .wlog-day-exlist             { padding: 9px 12px 12px; }
+  .wlog-ex-name                 { font-size: .8rem; }
+  .wlog-ex-srinfo               { font-size: .66rem; }
+  .wlog-bottom-actions         { flex-direction: column; }
+  .wlog-btn-reset, .wlog-btn-delete { text-align: center; }
+}
+

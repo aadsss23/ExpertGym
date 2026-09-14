@@ -1,0 +1,400 @@
+/* ══════════════════════════════════════════════════════════
+   EXPERTGYM — MOBILE UI/UX OVERHAUL
+   Header (hamburger dimatikan, nav kanan ringkas: Favorit +
+   Keluar/Masuk) dan Bottom Navigation kini berlaku untuk mobile
+   MAUPUN tablet (≤1024px) — lihat bagian 1 & 2 di bawah. Bagian
+   lain (stepper asesmen, layout hasil, modal bottom-sheet, tabel
+   admin sebagai kartu) tetap khusus layar mobile sempit (≤640px)
+   karena tablet masih punya cukup ruang untuk tampilan aslinya.
+   File ini murni presentasi — tidak berhubungan dengan logika
+   Forward Chaining / dataset / perhitungan rekomendasi.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── 0. Guard anti horizontal-overflow (target 360px–1024px) ── */
+@media (max-width: 1024px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  #appScreen, #authScreen, #adminScreen {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  .main-card, .modal, .panel, .admin-body, .wlog-page {
+    max-width: 100%;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   1. HEADER — hilangkan hamburger, sederhanakan nav User/Guest
+      (mobile & tablet, ≤1024px)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  /* Hamburger & drawer overlay lama dimatikan total di mobile */
+  .hamburger-btn,
+  .nav-overlay {
+    display: none !important;
+  }
+
+  nav:not(.auth-nav):not(.admin-nav) {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+  .nav-user-pill { display: none; }
+
+  /* nav-right kembali jadi baris biasa (bukan drawer) di mobile */
+  nav:not(.admin-nav) .nav-right {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    width: auto !important;
+    height: auto !important;
+    background: transparent !important;
+    border-left: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    transition: none !important;
+    overflow: visible !important;
+  }
+
+  /* Tombol yang sudah dipindah ke bottom navigation disembunyikan
+     dari header (Beranda/Asesmen/Riwayat/Workout Log) */
+  .nav-btn-back,
+  .nav-btn-assessment,
+  .nav-btn-wlog,
+  .nav-btn-history {
+    display: none !important;
+  }
+
+  /* Favorit → tampil ikon saja */
+  .nav-btn-favorit {
+    padding: 8px 9px;
+    font-size: .85rem;
+  }
+  .nav-btn-favorit .nav-btn-label { display: none; }
+  .nav-btn-favorit .badge-count { position: relative; top: -1px; }
+
+  /* Keluar → ringkas */
+  .nav-btn-logout {
+    padding: 8px 13px;
+    font-size: .73rem;
+  }
+
+  /* Masuk (mode tamu) → ringkas, tampil/sembunyi diatur global di style.css.
+     Warna (accent/black) disamakan secara eksplisit di sini agar konsisten
+     dengan desktop & tablet — tanpa ini, aturan drawer generik `.nav-btn`
+     di responsive.css (khusus ≤640px) menimpa warna tombol jadi putih
+     transparan hanya pada mode mobile, berbeda dari tablet. */
+  .nav-btn-mobile-login {
+    padding: 6px 14px;
+    font-size: .72rem;
+    font-weight: 600;
+    background: var(--accent) !important;
+    color: var(--black) !important;
+    border-color: var(--accent) !important;
+  }
+  .nav-btn-mobile-login:hover,
+  .nav-btn-mobile-login:active {
+    background: #d4eb3a !important;
+    color: var(--black) !important;
+    border-color: #d4eb3a !important;
+  }
+
+  /* ── Konsistensi akses fitur mode tamu (desktop/tablet/mobile) ──
+     Favorit TETAP TAMPIL untuk tamu di semua ukuran layar (sama seperti
+     desktop). Saat ditekan oleh tamu, openPanel('favorit') di app.js yang
+     menampilkan pesan "Login untuk menggunakan fitur favorit." — bukan
+     CSS yang menyembunyikan tombolnya. Lihat juga bagian 2 di bawah untuk
+     Workout Log & Riwayat pada bottom navigation. */
+}
+
+/* ══════════════════════════════════════════════════════════
+   2. BOTTOM NAVIGATION (mobile & tablet, ≤1024px)
+   ══════════════════════════════════════════════════════════ */
+.mobile-bottom-nav { display: none; position: fixed; top: auto; bottom: 0; }
+
+@media (max-width: 1024px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    top: auto;
+    left: 0; right: 0; bottom: 0;
+    height: auto;
+    background: rgba(10,10,10,.97);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border);
+    border-bottom: none;
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+    z-index: 500;
+  }
+  .mbn-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 7px 4px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    min-height: 44px;
+  }
+  .mbn-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .mbn-item span { font-size: .62rem; font-weight: 600; letter-spacing: .2px; }
+  .mbn-item.active { color: var(--accent); }
+  .mbn-item:active { background: rgba(255,255,255,.05); }
+
+  /* ── Konsistensi akses fitur mode tamu ──
+     Workout Log & Riwayat TETAP TAMPIL di bottom nav untuk tamu, sama
+     seperti tombol "Workout Log"/"Riwayat" di header desktop. Saat
+     ditekan oleh tamu: showView('wlog') → renderWlogView() (wlog.js)
+     menampilkan toast "Login untuk mengakses Workout Log.", dan
+     openPanel('history') (app.js) menampilkan pesan "Login untuk
+     melihat riwayat program." Tidak ada fitur yang disembunyikan
+     berdasarkan device di sini — hanya layout bottom-nav yang berbeda
+     dari header desktop. */
+
+  /* Ruang bawah supaya konten & footer tak tertutup bottom nav */
+  #appScreen { padding-bottom: 70px; }
+  .wlog-page { padding-bottom: 90px; }
+
+  /* Toast dinaikkan agar tidak tertutup bottom nav */
+  .toast { bottom: 78px; }
+}
+
+@media (min-width: 1025px) {
+  .mobile-bottom-nav { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   3. ASESMEN — tampilan step-by-step + progress bar (mobile)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  #assessmentView.active .main-card {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .m-stepper-progress {
+    position: sticky;
+    top: -1px;
+    z-index: 4;
+    background: var(--gray);
+    padding: 2px 2px 12px;
+    margin: -2px -2px 16px;
+  }
+  .m-stepper-progress-track {
+    height: 6px;
+    background: var(--gray3);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .m-stepper-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 6px;
+    transition: width .25s ease;
+  }
+  .m-stepper-progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: .68rem;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .m-stepper-progress-text .m-step-pct { color: var(--accent); font-weight: 600; }
+
+  .m-stepper-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .m-stepper-nav button {
+    flex: 1;
+    min-height: 46px;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: .86rem;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--gray2);
+    color: var(--white);
+    transition: all .2s;
+  }
+  .m-stepper-nav .m-step-next {
+    background: var(--accent);
+    color: var(--black);
+    border-color: var(--accent);
+  }
+  .m-stepper-nav button:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+  }
+
+  /* Sembunyikan tombol submit/kembali ASLI ketika mode stepper aktif —
+     digantikan oleh tombol Lanjut/Kembali milik stepper */
+  .m-stepper-active > .btn-primary,
+  .m-stepper-active > .btn-secondary {
+    display: none !important;
+  }
+
+  /* Satu pertanyaan per layar terasa lebih lapang */
+  .m-stepper-active .question-block { margin-bottom: 0; }
+  .m-stepper-active .radio-option { padding: 13px 14px; }
+  .m-stepper-active .question-block.m-answer-required .radio-group {
+    border-radius: 11px;
+    box-shadow: 0 0 0 1px var(--red);
+  }
+  .m-answer-required-text {
+    margin-top: 10px;
+    font-size: .72rem;
+    color: var(--red);
+    font-weight: 600;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   4. HALAMAN HASIL — hierarki lebih jelas (mobile)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Chip meta (level, goal, split, frekuensi, alat) tetap berjejer ke
+     samping & membungkus baris (wrap) — bukan ditumpuk ke bawah satu-satu,
+     supaya tetap rapi walau pengguna memilih banyak alat. */
+  #resultsMeta {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  #resultsMeta .program-chip.accent {
+    order: -1;
+    font-size: .78rem;
+    font-weight: 700;
+    padding: 5px 12px;
+  }
+  #resultsMeta .program-chip:not(.accent) {
+    font-size: .68rem;
+    padding: 4px 9px;
+  }
+  .split-tabs-wrap {
+    padding-top: 6px;
+  }
+  .split-tabs-wrap::before {
+    content: 'Pilih Hari Latihan';
+    display: block;
+    font-size: .66rem;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 6px 0 8px;
+  }
+  .results-grid { padding-bottom: 40px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   5. MODAL — tampil sebagai bottom sheet (mobile)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    width: 100%;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh;
+    animation: mSheetIn .28s cubic-bezier(.4,0,.2,1);
+  }
+  .modal::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--border2);
+    margin: 10px auto 4px;
+  }
+  @keyframes mSheetIn {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+}
+
+/* ── Panel (Favorit & Riwayat) juga sebagai bottom sheet ── */
+@media (max-width: 640px) {
+  .panel {
+    width: 100vw;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    top: auto;
+    height: 85vh;
+    animation: slideInBottomMobile .28s ease;
+  }
+  @keyframes slideInBottomMobile {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   6. ADMIN — card list untuk tabel data latihan (mobile)
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .admin-table-wrap div[style*="overflow-x:auto"] {
+    overflow-x: visible;
+  }
+  .admin-table { min-width: 0; width: 100%; }
+  .admin-table thead { display: none; }
+  .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+    display: block;
+    width: 100%;
+  }
+  .admin-table tr {
+    background: var(--gray2);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .admin-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border: none;
+    max-width: none;
+    white-space: normal;
+    text-align: right;
+  }
+  .admin-table td::before {
+    content: attr(data-label);
+    font-size: .66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    text-align: left;
+  }
+  .admin-table td:not(:last-child) {
+    border-bottom: 1px dashed var(--border);
+  }
+  .admin-table td[data-label="Aksi"] { justify-content: flex-end; }
+}
